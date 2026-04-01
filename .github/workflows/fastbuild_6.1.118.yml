@@ -543,7 +543,7 @@ jobs:
         run: |
             cd kernel_workspace/common
             wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1+_disable_crc_checks_for_lkms.patch
-            wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore cgroup file prefix handling .patch
+            wget 'https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore cgroup file prefix handling .patch'
             wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15+_use_android_abi_padding_for_posix_mqueue.patch
             wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
             patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
