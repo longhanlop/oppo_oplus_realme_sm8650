@@ -542,10 +542,10 @@ jobs:
       - name: 注入DroidSpaces内核配置
         run: |
             cd kernel_workspace/common
-            wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1+_disable_crc_checks_for_lkms.patch
-            wget 'https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore cgroup file prefix handling .patch'
-            wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15+_use_android_abi_padding_for_posix_mqueue.patch
-            wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+            wget https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/01.6.1+_disable_crc_checks_for_lkms.patch
+            wget 'https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/02.fix_restore cgroup file prefix handling .patch'
+            wget https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/03.5.15+_use_android_abi_padding_for_posix_mqueue.patch
+            wget https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/04.use_android_abi_padding_for_sysvipc_task_struct.patch
             patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
             patch -p1 -N -F 3 < '02.fix_restore cgroup file prefix handling .patch'
             patch -p1 -N -F 3 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
