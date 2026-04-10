@@ -539,17 +539,21 @@ jobs:
             done
           fi
 
-      - name: 注入DroidSpaces内核配置
+      - name: 注入DroidSpaces内核配置/修复gunyah
         run: |
             cd kernel_workspace/common
             wget https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/01.6.1+_disable_crc_checks_for_lkms.patch
             wget 'https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/02.fix_restore cgroup file prefix handling .patch'
             wget https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/03.5.15+_use_android_abi_padding_for_posix_mqueue.patch
             wget https://raw.githubusercontent.com/Goldzxcbug/Kernel_patch/refs/heads/main/Droidspaces/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+            wget https://github.com/Andy312432/android_kernel_samsung_sm8650_gunyah/commit/3d8767092fa186b77dfcbc5fd14b53ae17b04bb2.patch -O gunyah1
+            wget https://github.com/Andy312432/android_kernel_samsung_sm8650_gunyah/commit/b2ffff284b1f8b6cd79c280fb746b27fb6f0cbae.patch -O gunyah2
             patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
             patch -p1 -N -F 3 < '02.fix_restore cgroup file prefix handling .patch'
             patch -p1 -N -F 3 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
             patch -p1 -N -F 3 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
+            patch -p1 -N -F 3 < 'gunyah1'
+            patch -p1 -N -F 3 < 'gunyah2'
             cd ../
             # 修复 [✗] PID namespace 和 [✗] IPC namespace
               echo "CONFIG_SYSCTL=y" >> ./common/arch/arm64/configs/gki_defconfig
