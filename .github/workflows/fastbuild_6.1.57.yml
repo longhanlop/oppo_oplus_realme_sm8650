@@ -681,7 +681,7 @@ jobs:
           key: ${{ env.CCACHE_KEY }}-${{ runner.os }}-${{ github.ref_name }}
 
       - name: 保存新的 output 缓存
-        if: ${{ inputs.xtreme_compile }} && (${{ inputs.ccache_update }} || ${{ steps.output-restore.outputs.cache-hit }} != 'true')
+        if: ${{ inputs.xtreme_compile && (inputs.ccache_update || steps.output-restore.outputs.cache-hit != 'true') }}
         uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/kernel_workspace/common/out
