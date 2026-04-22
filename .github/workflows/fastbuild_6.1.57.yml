@@ -218,7 +218,7 @@ jobs:
           fi
           
           echo "未命中缓存，尝试拉取最新公共 output ..."
-          mkdir -p ${{ env.CCACHE_DIR }}
+          mkdir -p ${{ github.workspace }}/kernel_workspace/common/out
           FILE_NAME="out-${{ env.KERNEL_VERSION }}.${{ env.SUB_VERSION }}.tar.zst"
           
           if gh release download -p "$FILE_NAME" -R cctv18/public_ccache; then
