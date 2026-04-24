@@ -85,6 +85,11 @@ on:
         required: true
         type: boolean
         default: 'false'
+      lxc_gunyah_ntsync:
+        description: '注入DroidSpaces内核配置/修复gunyah/启用NTSync'
+        required: true
+        type: boolean
+        default: 'false'
       kernel_suffix:
         description: '内核后缀(留空默认,开头别加连字符,勿加空格等影响指令运行的保留字符)'
         required: false
@@ -544,7 +549,51 @@ jobs:
               sed -i "\$s|echo \"\\\$res\"|echo \"-${{ env.KERNEL_NAME }}\"|" "$f"
             done
           fi
-           
+          
+      - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
+        if: inputs.lxc_gunyah_ntsync
+        run: |
+            cd kernel_workspace/common
+            wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/OKI/6.1/01.6.1%2B_disable_crc_checks_for_lkms.patch
+            wget 'https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/OKI/6.1/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch'
+            wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/OKI/6.1/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
+            wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/OKI/6.1/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+            wget https://github.com/Andy312432/android_kernel_samsung_sm8650_gunyah/commit/3d8767092fa186b77dfcbc5fd14b53ae17b04bb2.patch -O gunyah1
+            wget https://github.com/Andy312432/android_kernel_samsung_sm8650_gunyah/commit/b2ffff284b1f8b6cd79c280fb746b27fb6f0cbae.patch -O gunyah2
+            wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_base.patch
+            wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_compat_android14-6.1.patch
+            patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
+            patch -p1 -N -F 3 < '02.fix_restore cgroup file prefix handling .patch'
+            patch -p1 -N -F 3 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
+            patch -p1 -N -F 3 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
+            patch -p1 -N -F 3 < 'gunyah1'
+            patch -p1 -N -F 3 < 'gunyah2'
+            patch -p1 -N -F 3 < 'ntsync_base.patch'
+            patch -p1 -N -F 3 < 'ntsync_compat_android14-6.1.patch'
+            cd ../
+            # 修复 [✗] PID namespace 和 [✗] IPC namespace
+              echo "CONFIG_SYSCTL=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_SYSVIPC=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_POSIX_MQUEUE=y" >> ./common/arch/arm64/configs/gki_defconfig
+
+              echo "CONFIG_NAMESPACES=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_PID_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_IPC_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_UTS_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_USER_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+            # 修复 [✗] devtmpfs support
+              echo "CONFIG_DEVTMPFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_DEVTMPFS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+
+            # 修复 cgroup devices support
+             echo "CONFIG_CGROUPS=y" >> ./common/arch/arm64/configs/gki_defconfig
+             echo "CONFIG_CGROUP_DEVICE=y" >> ./common/arch/arm64/configs/gki_defconfig
+             echo "CONFIG_CGROUP_PIDS=y" >> ./common/arch/arm64/configs/gki_defconfig
+             echo "CONFIG_MEMCG=y" >> ./common/arch/arm64/configs/gki_defconfig
+             
+            # 添加 NTSync 支持
+             echo "CONFIG_NTSYNC=y" >> ./common/arch/arm64/configs/gki_defconfig
+             
       - name: 构建内核
         run: |
           WORKDIR="$(pwd)"
