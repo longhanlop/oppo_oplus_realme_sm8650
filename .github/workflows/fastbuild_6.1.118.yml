@@ -641,11 +641,11 @@ jobs:
             cd ../
             echo "正在启用容器环境扩展支持..."
               # 开启虚拟 HCI 设备支持
-              echo "CONFIG_BT_HCIVHCI=y" >> ./arch/arm64/configs/gki_defconfig
+              echo "CONFIG_BT_HCIVHCI=y" >> ./common/arch/arm64/configs/gki_defconfig
               # 开启 systemd-coredump 支持
-              echo "CONFIG_STATIC_USERMODEHELPER=n" >> ./arch/arm64/configs/gki_defconfig
+              echo "CONFIG_STATIC_USERMODEHELPER=n" >> ./common/arch/arm64/configs/gki_defconfig
               # 添加 Lindroid EVDI DRM 驱动
-              echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./arch/arm64/configs/gki_defconfig
+              echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./common/arch/arm64/configs/gki_defconfig
             # 修复 [✗] PID namespace 和 [✗] IPC namespace
               echo "CONFIG_SYSCTL=y" >> ./common/arch/arm64/configs/gki_defconfig
               echo "CONFIG_SYSVIPC=y" >> ./common/arch/arm64/configs/gki_defconfig
