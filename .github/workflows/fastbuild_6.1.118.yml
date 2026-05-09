@@ -616,7 +616,7 @@ jobs:
             done
           fi
           
-      - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
+      - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync(备用)
         if: inputs.lxc_gunyah_ntsync
         run: |
             cd kernel_workspace/common
@@ -628,6 +628,8 @@ jobs:
             wget https://github.com/Andy312432/android_kernel_samsung_sm8650_gunyah/commit/b2ffff284b1f8b6cd79c280fb746b27fb6f0cbae.patch -O gunyah2
             wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_base.patch
             wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_compat_android14-6.1.patch
+            wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/evdi_drm.patch
+            patch -p1 -F 3 < evdi_drm.patch
             patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
             patch -p1 -N -F 3 < '02.fix_restore cgroup file prefix handling .patch'
             patch -p1 -N -F 3 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
@@ -637,6 +639,13 @@ jobs:
             patch -p1 -N -F 3 < 'ntsync_base.patch'
             patch -p1 -N -F 3 < 'ntsync_compat_android14-6.1.patch'
             cd ../
+            echo "正在启用容器环境扩展支持..."
+              # 开启虚拟 HCI 设备支持
+              echo "CONFIG_BT_HCIVHCI=y" >> ./arch/arm64/configs/gki_defconfig
+              # 开启 systemd-coredump 支持
+              echo "CONFIG_STATIC_USERMODEHELPER=n" >> ./arch/arm64/configs/gki_defconfig
+              # 添加 Lindroid EVDI DRM 驱动
+              echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./arch/arm64/configs/gki_defconfig
             # 修复 [✗] PID namespace 和 [✗] IPC namespace
               echo "CONFIG_SYSCTL=y" >> ./common/arch/arm64/configs/gki_defconfig
               echo "CONFIG_SYSVIPC=y" >> ./common/arch/arm64/configs/gki_defconfig
