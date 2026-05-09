@@ -668,7 +668,10 @@ jobs:
              
             # 添加 NTSync 支持
              echo "CONFIG_NTSYNC=y" >> ./common/arch/arm64/configs/gki_defconfig
-             
+            # 启用overlay2全支持
+            echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_OVERLAY_FS_INDEX=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_OVERLAY_FS_METACOPY=y" >> ./common/arch/arm64/configs/gki_defconfig
       - name: 构建内核
         run: |
           WORKDIR="$(pwd)"
