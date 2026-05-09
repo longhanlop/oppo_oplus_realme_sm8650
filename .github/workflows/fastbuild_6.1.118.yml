@@ -95,7 +95,7 @@ on:
         type: boolean
         default: 'false'
       lxc_gunyah_ntsync:
-        description: '注入DroidSpaces内核配置/修复gunyah/启用NTSync'
+        description: '注入DroidSpaces内核配置/修复gunyah/启用NTSync(激进/危险)'
         required: true
         type: boolean
         default: 'false'
@@ -616,7 +616,7 @@ jobs:
             done
           fi
           
-      - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync(备用)
+      - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
         if: inputs.lxc_gunyah_ntsync
         run: |
             cd kernel_workspace/common
