@@ -97,8 +97,12 @@ on:
       lxc_gunyah_ntsync:
         description: '注入DroidSpaces内核配置/修复gunyah/启用NTSync(激进/危险)'
         required: true
-        type: boolean
+        type: choice
         default: 'false'
+        options:
+          - 'false'
+          - 'Normal'
+          - 'full'
       kernel_suffix:
         description: '内核后缀(留空默认,开头别加连字符,勿加空格等影响指令运行的保留字符)'
         required: false
@@ -617,8 +621,9 @@ jobs:
           fi
           
       - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
-        if: inputs.lxc_gunyah_ntsync
         run: |
+          if [[ "${{ github.event.inputs.droidspaces_enable }}" == "false" ]]; then 
+          if [[ "${{ github.event.inputs.lxc_gunyah_ntsync }}" != "false" ]]; then
             cd kernel_workspace/common
             wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/01.6.1%2B_disable_crc_checks_for_lkms.patch
             wget 'https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch'
@@ -636,10 +641,19 @@ jobs:
             patch -p1 -N -F 3 < '04.sysvipc_task_struct.patch'
             patch -p1 -N -F 3 < 'gunyah1'
             patch -p1 -N -F 3 < 'gunyah2'
+            if [[ "${{ github.event.inputs.lxc_gunyah_ntsync }}" == "full" ]]; then
             patch -p1 -N -F 3 < 'ntsync_base.patch'
             patch -p1 -N -F 3 < 'ntsync_compat_android14-6.1.patch'
+             # 添加 NTSync 支持
+            echo "CONFIG_NTSYNC=y" >> ./arch/arm64/configs/gki_defconfig
+
+            fi
             cd ../
-            echo "正在启用容器环境扩展支持..."
+            echo "正在写入配置"
+              # 启用overlay2全支持
+              echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_OVERLAY_FS_INDEX=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_OVERLAY_FS_METACOPY=y" >> ./common/arch/arm64/configs/gki_defconfig
               # 开启虚拟 HCI 设备支持
               echo "CONFIG_BT_HCIVHCI=y" >> ./common/arch/arm64/configs/gki_defconfig
               # 开启 systemd-coredump 支持
@@ -664,14 +678,13 @@ jobs:
              echo "CONFIG_CGROUPS=y" >> ./common/arch/arm64/configs/gki_defconfig
              echo "CONFIG_CGROUP_DEVICE=y" >> ./common/arch/arm64/configs/gki_defconfig
              echo "CONFIG_CGROUP_PIDS=y" >> ./common/arch/arm64/configs/gki_defconfig
-             echo "CONFIG_MEMCG=y" >> ./common/arch/arm64/configs/gki_defconfig
-             
-            # 添加 NTSync 支持
-             echo "CONFIG_NTSYNC=y" >> ./common/arch/arm64/configs/gki_defconfig
-            # 启用overlay2全支持
-            echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_OVERLAY_FS_INDEX=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_OVERLAY_FS_METACOPY=y" >> ./common/arch/arm64/configs/gki_defconfig
+             echo "CONFIG_MEMCG=y" >> ./common/arch/arm64/configs/gki_defconfig      
+          else
+             echo "未配置，跳过此步骤..."
+          fi
+          else
+             echo "检测到重复配置，跳过此步骤!"
+          fi
       - name: 构建内核
         run: |
           WORKDIR="$(pwd)"
