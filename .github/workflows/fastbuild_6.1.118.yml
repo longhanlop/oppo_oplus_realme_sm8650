@@ -652,7 +652,7 @@ jobs:
             # 添加 Lindroid EVDI DRM 驱动
             echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./common/arch/arm64/configs/gki_defconfig
             patch -p1 -F 3 < evdi_drm.patch
-           fi
+            fi
             cd ../
             echo "正在写入配置"
               # 启用overlay2全支持
@@ -678,7 +678,8 @@ jobs:
              echo "CONFIG_CGROUP_DEVICE=y" >> ./common/arch/arm64/configs/gki_defconfig
              echo "CONFIG_CGROUP_PIDS=y" >> ./common/arch/arm64/configs/gki_defconfig
              echo "CONFIG_MEMCG=y" >> ./common/arch/arm64/configs/gki_defconfig      
-          else
+            fi
+           else
              if [[ "${{ github.event.inputs.lxc_gunyah_ntsync }}" != "false" ]]; then
                 echo "检测到重复配置，跳过此步骤!"
              fi
