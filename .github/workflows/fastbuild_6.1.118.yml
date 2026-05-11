@@ -683,7 +683,10 @@ jobs:
              echo "未配置，跳过此步骤..."
           fi
           else
+          if [[ "${{ github.event.inputs.lxc_gunyah_ntsync }}" != "false" ]]
              echo "检测到重复配置，跳过此步骤!"
+          fi
+             echo "未配置，跳过此步骤..."
           fi
       - name: 构建内核
         run: |
