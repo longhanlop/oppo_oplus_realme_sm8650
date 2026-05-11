@@ -634,7 +634,6 @@ jobs:
             wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_base.patch
             wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_compat_android14-6.1.patch
             wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/evdi_drm.patch
-            patch -p1 -F 3 < evdi_drm.patch
             patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
             patch -p1 -N -F 3 < '02.fix_restore cgroup file prefix handling .patch'
             patch -p1 -N -F 3 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
@@ -646,7 +645,13 @@ jobs:
             patch -p1 -N -F 3 < 'ntsync_compat_android14-6.1.patch'
              # 添加 NTSync 支持
             echo "CONFIG_NTSYNC=y" >> ./arch/arm64/configs/gki_defconfig
-
+            # 开启虚拟 HCI 设备支持
+            echo "CONFIG_BT_HCIVHCI=y" >> ./common/arch/arm64/configs/gki_defconfig
+            # 开启 systemd-coredump 支持
+            echo "CONFIG_STATIC_USERMODEHELPER=n" >> ./common/arch/arm64/configs/gki_defconfig
+            # 添加 Lindroid EVDI DRM 驱动
+            echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./common/arch/arm64/configs/gki_defconfig
+            patch -p1 -F 3 < evdi_drm.patch
             fi
             cd ../
             echo "正在写入配置"
@@ -654,13 +659,7 @@ jobs:
               echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> ./common/arch/arm64/configs/gki_defconfig
               echo "CONFIG_OVERLAY_FS_INDEX=y" >> ./common/arch/arm64/configs/gki_defconfig
               echo "CONFIG_OVERLAY_FS_METACOPY=y" >> ./common/arch/arm64/configs/gki_defconfig
-              # 开启虚拟 HCI 设备支持
-              echo "CONFIG_BT_HCIVHCI=y" >> ./common/arch/arm64/configs/gki_defconfig
-              # 开启 systemd-coredump 支持
-              echo "CONFIG_STATIC_USERMODEHELPER=n" >> ./common/arch/arm64/configs/gki_defconfig
-              # 添加 Lindroid EVDI DRM 驱动
-              echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./common/arch/arm64/configs/gki_defconfig
-            # 修复 [✗] PID namespace 和 [✗] IPC namespace
+              # 修复 [✗] PID namespace 和 [✗] IPC namespace
               echo "CONFIG_SYSCTL=y" >> ./common/arch/arm64/configs/gki_defconfig
               echo "CONFIG_SYSVIPC=y" >> ./common/arch/arm64/configs/gki_defconfig
               echo "CONFIG_POSIX_MQUEUE=y" >> ./common/arch/arm64/configs/gki_defconfig
