@@ -103,6 +103,11 @@ on:
           - 'false'
           - 'Normal'
           - 'full'
+      selinux_fix:
+         description: '修复selinux可以检测magisk等的问题(原补丁来自酷安@Andreaのlyz大佬)'
+         required: true
+         type: boolean
+         default: 'true'
       kernel_suffix:
         description: '内核后缀(留空默认,开头别加连字符,勿加空格等影响指令运行的保留字符)'
         required: false
@@ -619,7 +624,14 @@ jobs:
               sed -i "\$s|echo \"\\\$res\"|echo \"-${{ env.KERNEL_NAME }}\"|" "$f"
             done
           fi
-          
+      - name: selinux修复
+        if: inputs.selinux_fix
+        run: |
+           cd kernel_workspace/common
+           echo "正在下载补丁..."
+           wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/selinux6.1fix.patch
+           patch -p0 -N -F 3 < 'selinux6.1fix.patch'
+           
       - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
         run: |
           if [[ "${{ github.event.inputs.droidspaces_enable }}" == "false" ]]; then 
@@ -634,14 +646,12 @@ jobs:
             wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_base.patch
             wget https://raw.githubusercontent.com/Goldzxcbug/Droidspaces_Kernel_patch/refs/heads/main/NTsync/ntsync_compat_android14-6.1.patch
             wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/evdi_drm.patch
-            wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/selinux6.1fix.patch
             patch -p1 -N -F 3 < '01.6.1+_disable_crc_checks_for_lkms.patch'
             patch -p1 -N -F 3 < '02.fix_restore cgroup file prefix handling .patch'
             patch -p1 -N -F 3 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
             patch -p1 -N -F 3 < '04.sysvipc_task_struct.patch'
             patch -p1 -N -F 3 < 'gunyah1'
             patch -p1 -N -F 3 < 'gunyah2'
-            patch -p0 -N -F 3 < 'selinux6.1fix.patch'
             if [[ "${{ github.event.inputs.lxc_gunyah_ntsync }}" == "full" ]]; then
             patch -p1 -N -F 3 < 'ntsync_base.patch'
             patch -p1 -N -F 3 < 'ntsync_compat_android14-6.1.patch'
