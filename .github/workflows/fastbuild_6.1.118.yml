@@ -642,7 +642,6 @@ jobs:
            cd kernel_workspace/common
            echo "正在写入配置"
            echo "CONFIG_KEXEC=y" >> ./arch/arm64/configs/gki_defconfig
-           echo "CONFIG_KEXEC_FILE=y" >> ./arch/arm64/configs/gki_defconfig
            echo "CONFIG_CRASH_DUMP=y" >> ./arch/arm64/configs/gki_defconfig
            echo "CONFIG_PROC_VMCORE=y" >> ./arch/arm64/configs/gki_defconfig
       - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
