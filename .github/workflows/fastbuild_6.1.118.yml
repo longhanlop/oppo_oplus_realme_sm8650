@@ -108,6 +108,11 @@ on:
          required: true
          type: boolean
          default: 'true'
+      kexec_support:
+         description: '(高危/激进)尝试启用kexec内核热切换支持'
+         required: true
+         type: boolean
+         default: 'true'
       kernel_suffix:
         description: '内核后缀(留空默认,开头别加连字符,勿加空格等影响指令运行的保留字符)'
         required: false
@@ -631,7 +636,15 @@ jobs:
            echo "正在下载补丁..."
            wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/selinux6.1fix.patch
            patch -p0 -N -F 3 < 'selinux6.1fix.patch'
-           
+      - name: 添加kexec支持
+        if: inputs.kexec_support
+        run: |
+           cd kernel_workspace/common
+           echo "正在写入配置"
+           echo "CONFIG_KEXEC=y" >> ./arch/arm64/configs/gki_defconfig
+           echo "CONFIG_KEXEC_FILE=y" >> ./arch/arm64/configs/gki_defconfig
+           echo "CONFIG_CRASH_DUMP=y" >> ./arch/arm64/configs/gki_defconfig
+           echo "CONFIG_PROC_VMCORE=y" >> ./arch/arm64/configs/gki_defconfig
       - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
         run: |
           if [[ "${{ github.event.inputs.droidspaces_enable }}" == "false" ]]; then 
