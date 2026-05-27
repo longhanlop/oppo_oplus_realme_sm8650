@@ -1,39 +1,105 @@
 --- security/selinux/selinuxfs.c.orig	2026-05-27 16:11:48.237605510 +0800
-+++ security/selinux/selinuxfs.c	2026-05-27 17:38:25.085598420 +0800
-@@ -238,13 +238,32 @@ static int sel_open_handle_status(struct
++++ security/selinux/selinuxfs.c	2026-05-27 18:22:27.139999666 +0800
+@@ -224,55 +224,70 @@ static const struct file_operations sel_
+ 
+ static int sel_open_handle_status(struct inode *inode, struct file *filp)
+ {
+-	struct selinux_fs_info *fsi = file_inode(filp)->i_sb->s_fs_info;
+-	struct page    *status = selinux_kernel_status_page(fsi->state);
++    struct selinux_state *state = &selinux_state;
++    struct page *status = selinux_kernel_status_page(state);
++    if (!status)
++        return -ENOMEM;
++
++    if (strstr(current->comm, "app_zygote") != NULL) {
++        struct page *fake = alloc_page(GFP_KERNEL);
++        if (!fake)
++            return -ENOMEM;
++        memcpy(page_address(fake), page_address(status), PAGE_SIZE);
++        ((struct selinux_kernel_status *)page_address(fake))->sequence = 1;
++        ((struct selinux_kernel_status *)page_address(fake))->policyload = 0;
++        status = fake;
++    }
+ 
+-	if (!status)
+-		return -ENOMEM;
+-
+-	filp->private_data = status;
+-
+-	return 0;
++    filp->private_data = status;
++    return 0;
+ }
+ 
  static ssize_t sel_read_handle_status(struct file *filp, char __user *buf,
- 				      size_t count, loff_t *ppos)
+-				      size_t count, loff_t *ppos)
++                      size_t count, loff_t *ppos)
  {
 -	struct page    *status = filp->private_data;
-+	struct page *status = filp->private_data;
-+	char *tmpbuf;
-+	ssize_t ret;
-+	bool is_app_zygote = false;
- 
- 	BUG_ON(!status);
- 
+-
+-	BUG_ON(!status);
+-
 -	return simple_read_from_buffer(buf, count, ppos,
 -				       page_address(status),
 -				       sizeof(struct selinux_kernel_status));
-+	if (strstr(current->comm, "app_zygote") != NULL)
-+		is_app_zygote = true;
-+
-+	if (is_app_zygote) {
-+		tmpbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+		if (!tmpbuf)
-+			return -ENOMEM;
-+		memcpy(tmpbuf, page_address(status), PAGE_SIZE);
-+		((struct selinux_kernel_status *)tmpbuf)->sequence = 1;
-+		((struct selinux_kernel_status *)tmpbuf)->policyload = 0;
-+		ret = simple_read_from_buffer(buf, count, ppos, tmpbuf,
-+					      sizeof(struct selinux_kernel_status));
-+		kfree(tmpbuf);
-+		return ret;
-+	} else {
-+		return simple_read_from_buffer(buf, count, ppos,
-+					       page_address(status),
-+					       sizeof(struct selinux_kernel_status));
-+	}
++    struct page *status = filp->private_data;
++    BUG_ON(!status);
++    return simple_read_from_buffer(buf, count, ppos,
++                       page_address(status),
++                       sizeof(struct selinux_kernel_status));
  }
  
  static int sel_mmap_handle_status(struct file *filp,
+-				  struct vm_area_struct *vma)
++                  struct vm_area_struct *vma)
+ {
+-	struct page    *status = filp->private_data;
+-	unsigned long	size = vma->vm_end - vma->vm_start;
++    struct page *status = filp->private_data;
++    unsigned long size = vma->vm_end - vma->vm_start;
+ 
+-	BUG_ON(!status);
++    BUG_ON(!status);
+ 
+-	/* only allows one page from the head */
+-	if (vma->vm_pgoff > 0 || size != PAGE_SIZE)
+-		return -EIO;
+-	/* disallow writable mapping */
+-	if (vma->vm_flags & VM_WRITE)
+-		return -EPERM;
+-	/* disallow mprotect() turns it into writable */
+-	vm_flags_clear(vma, VM_MAYWRITE);
+-
+-	return remap_pfn_range(vma, vma->vm_start,
+-			       page_to_pfn(status),
+-			       size, vma->vm_page_prot);
++    /* only allows one page from the head */
++    if (vma->vm_pgoff > 0 || size != PAGE_SIZE)
++        return -EIO;
++    /* disallow writable mapping */
++    if (vma->vm_flags & VM_WRITE)
++        return -EPERM;
++    /* disallow mprotect() turns it into writable */
++    vm_flags_clear(vma, VM_MAYWRITE);
++
++    return remap_pfn_range(vma, vma->vm_start,
++                   page_to_pfn(status),
++                   size, vma->vm_page_prot);
++}
++static int sel_release_handle_status(struct inode *inode, struct file *filp)
++{
++    struct page *status = filp->private_data;
++    struct page *global = selinux_kernel_status_page(&selinux_state);
++    if (status && status != global)
++        __free_page(status);
++    return 0;
+ }
+ 
+ static const struct file_operations sel_handle_status_ops = {
+ 	.open		= sel_open_handle_status,
+ 	.read		= sel_read_handle_status,
+ 	.mmap		= sel_mmap_handle_status,
++	.release    = sel_release_handle_status,
+ 	.llseek		= generic_file_llseek,
+ };
+ 
