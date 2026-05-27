@@ -579,7 +579,9 @@ jobs:
            cd kernel_workspace/common
            echo "正在下载补丁..."
            wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/selinux6.1fix.patch
+           wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/selinux6.1fix2.patch
            patch -p0 -N -F 3 < 'selinux6.1fix.patch'
+           patch -p0 -N -F 3 < 'selinux6.1fix2.patch'
       - name: 添加kexec支持
         if: inputs.kexec_support
         run: |
