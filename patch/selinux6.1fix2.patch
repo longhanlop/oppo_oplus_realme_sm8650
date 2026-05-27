@@ -4,7 +4,7 @@
  #include "security.h"
  #include "objsec.h"
  #include "conditional.h"
-+#include "symtab.h"
++#include "ss/symtab.h"
  #include "ima.h"
  
  enum sel_inos {
