@@ -107,12 +107,12 @@ on:
          description: '修复selinux可以检测magisk等的问题(原补丁来自酷安@Andreaのlyz大佬)'
          required: true
          type: boolean
-         default: 'true'
+         default: 'false'
       kexec_support:
          description: '(高危/激进)尝试启用kexec内核热切换支持'
          required: true
          type: boolean
-         default: 'true'
+         default: 'false'
       kernel_suffix:
         description: '内核后缀(留空默认,开头别加连字符,勿加空格等影响指令运行的保留字符)'
         required: false
