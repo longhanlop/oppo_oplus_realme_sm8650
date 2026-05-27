@@ -1,14 +1,6 @@
 --- security/selinux/selinuxfs.c.orig	2026-05-27 16:11:48.237605510 +0800
-+++ security/selinux/selinuxfs.c	2026-05-27 19:03:42.703998721 +0800
-@@ -41,6 +41,7 @@
- #include "security.h"
- #include "objsec.h"
- #include "conditional.h"
-+#include "ss/symtab.h"
- #include "ima.h"
- 
- enum sel_inos {
-@@ -225,13 +226,55 @@ static const struct file_operations sel_
++++ security/selinux/selinuxfs.c	2026-05-28 07:47:10.964999505 +0800
+@@ -225,16 +225,49 @@ static const struct file_operations sel_
  static int sel_open_handle_status(struct inode *inode, struct file *filp)
  {
  	struct selinux_fs_info *fsi = file_inode(filp)->i_sb->s_fs_info;
@@ -17,26 +9,19 @@
 +	static struct page *fake_status_page;
 +	static DEFINE_MUTEX(fake_page_lock);
 +	bool is_app_zygote = false;
-+	struct selinux_policy *policy;
-+	struct context *ctx;
-+	const char *type_name;
-+	u32 sid;
++	char *scontext = NULL;
++	u32 sid, len;
  
  	if (!status)
  		return -ENOMEM;
  
+-	filp->private_data = status;
 +	sid = current_sid();
-+	rcu_read_lock();
-+	policy = rcu_dereference(fsi->state->policy);
-+	if (policy) {
-+		ctx = sidtab_search(policy->sidtab, sid);
-+		if (ctx) {
-+			type_name = sym_name(&policy->policydb, SYM_TYPES, ctx->type - 1);
-+			if (type_name && strcmp(type_name, "app_zygote") == 0)
-+				is_app_zygote = true;
-+		}
-+	}
-+	rcu_read_unlock();
++    if (security_sid_to_context(fsi->state, sid, &scontext, &len) == 0) {
++           if (strncmp(scontext, "u:r:app_zygote:", 15) == 0)
++               is_app_zygote = true;
++            security_release_secctx(scontext, len);
++    }
 +
 +	if (is_app_zygote) {
 +		mutex_lock(&fake_page_lock);
@@ -55,17 +40,20 @@
 +		if (fake_status_page)
 +			status = fake_status_page;
 +	}
-+
- 	filp->private_data = status;
+ 
++	filp->private_data = status;
 +	return 0;
 +}
- 
 +static int sel_release_handle_status(struct inode *inode, struct file *filp)
 +{
++	/* 共享页面不释放，避免 UAF */
  	return 0;
  }
- 
-@@ -273,6 +316,7 @@ static const struct file_operations sel_
+-
+ static ssize_t sel_read_handle_status(struct file *filp, char __user *buf,
+ 				      size_t count, loff_t *ppos)
+ {
+@@ -273,6 +306,7 @@ static const struct file_operations sel_
  	.open		= sel_open_handle_status,
  	.read		= sel_read_handle_status,
  	.mmap		= sel_mmap_handle_status,
