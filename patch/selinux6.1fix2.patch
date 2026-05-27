@@ -1,50 +1,30 @@
 --- security/selinux/selinuxfs.c.orig	2026-05-27 16:11:48.237605510 +0800
-+++ security/selinux/selinuxfs.c	2026-05-27 17:03:09.573604335 +0800
-@@ -238,13 +238,52 @@ static int sel_open_handle_status(struct
++++ security/selinux/selinuxfs.c	2026-05-27 17:38:25.085598420 +0800
+@@ -238,13 +238,32 @@ static int sel_open_handle_status(struct
  static ssize_t sel_read_handle_status(struct file *filp, char __user *buf,
  				      size_t count, loff_t *ppos)
  {
 -	struct page    *status = filp->private_data;
 +	struct page *status = filp->private_data;
-+	struct selinux_kernel_status *kstatus;
 +	char *tmpbuf;
 +	ssize_t ret;
 +	bool is_app_zygote = false;
-+	struct selinux_state *state = &selinux_state;
-+	struct selinux_policy *policy;
-+	struct context *ctx;
-+	const char *type_name;
-+	u32 sid;
  
  	BUG_ON(!status);
  
 -	return simple_read_from_buffer(buf, count, ppos,
 -				       page_address(status),
 -				       sizeof(struct selinux_kernel_status));
-+	/* 判断当前进程是否为 app_zygote */
-+	sid = current_sid();
-+	rcu_read_lock();
-+	policy = rcu_dereference(state->policy);
-+	if (policy) {
-+		ctx = sidtab_search(policy->sidtab, sid);
-+		if (ctx) {
-+			type_name = sym_name(&policy->policydb, SYM_TYPES, ctx->type - 1);
-+			if (type_name && !strcmp(type_name, "app_zygote"))
-+				is_app_zygote = true;
-+		}
-+	}
-+	rcu_read_unlock();
++	if (strstr(current->comm, "app_zygote") != NULL)
++		is_app_zygote = true;
 +
 +	if (is_app_zygote) {
-+		/* 分配临时缓冲区，复制 status 页面内容，避免污染全局 */
 +		tmpbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
 +		if (!tmpbuf)
 +			return -ENOMEM;
 +		memcpy(tmpbuf, page_address(status), PAGE_SIZE);
-+		kstatus = (struct selinux_kernel_status *)tmpbuf;
-+		/* 伪造 sequence 和 policyload，使检测认为从未发生过 enforce 切换 */
-+		kstatus->sequence = 1;
-+		kstatus->policyload = 0;
++		((struct selinux_kernel_status *)tmpbuf)->sequence = 1;
++		((struct selinux_kernel_status *)tmpbuf)->policyload = 0;
 +		ret = simple_read_from_buffer(buf, count, ppos, tmpbuf,
 +					      sizeof(struct selinux_kernel_status));
 +		kfree(tmpbuf);
