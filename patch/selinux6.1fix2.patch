@@ -46,7 +46,7 @@
 +}
 +static int sel_release_handle_status(struct inode *inode, struct file *filp)
 +{
-+	/* 共享页面不释放，避免 UAF */
++	/* 依旧光注册不干活这一块 */
  	return 0;
  }
 -
