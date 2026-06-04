@@ -104,12 +104,17 @@ on:
           - 'Normal'
           - 'full'
       selinux_fix:
-         description: '修复selinux可以检测magisk等的问题(原补丁来自酷安@Andreaのlyz大佬)'
+         description: '修复selinux可以检测magisk等的问题(部分原补丁来自酷安@Andreaのlyz)'
          required: true
          type: boolean
          default: 'false'
       kexec_support:
          description: '(高危/激进)尝试启用kexec内核热切换支持'
+         required: true
+         type: boolean
+         default: 'false'
+      storage_vulnerability_fix:
+         description: '(高危/激进)尝试启用零宽字符修复补丁'
          required: true
          type: boolean
          default: 'false'
@@ -590,6 +595,13 @@ jobs:
            echo "CONFIG_KEXEC=y" >> ./arch/arm64/configs/gki_defconfig
            echo "CONFIG_CRASH_DUMP=y" >> ./arch/arm64/configs/gki_defconfig
            echo "CONFIG_PROC_VMCORE=y" >> ./arch/arm64/configs/gki_defconfig
+      - name: 零宽字符修复
+        if: inputs.storage_vulnerability_fix
+        run: |
+           cd kernel_workspace/common
+           echo "正在修补fs/fuse/dev.c"
+           wget https://raw.githubusercontent.com/longhanlop/oppo_oplus_realme_sm8650/refs/heads/main/patch/sdfix.patch
+           patch -p0 -N -F 3 < 'sdfix.patch'
       - name: 注入DroidSpaces内核配置/修复gunyah/启用NTSync
         run: |
           if [[ "${{ github.event.inputs.droidspaces_enable }}" == "false" ]]; then 
