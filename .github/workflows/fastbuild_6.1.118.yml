@@ -95,7 +95,7 @@ on:
         type: boolean
         default: 'false'
       lxc_gunyah_ntsync:
-        description: '注入DroidSpaces内核配置/修复gunyah/启用NTSync(激进/危险)'
+        description: '注入DroidSpaces内核配置/修复gunyah/启用NTSync(激进/备用方案)'
         required: true
         type: choice
         default: 'false'
@@ -114,7 +114,7 @@ on:
          type: boolean
          default: 'false'
       storage_vulnerability_fix:
-         description: '(高危/激进)尝试启用零宽字符修复补丁'
+         description: '(激进/备用)尝试启用零宽字符修复补丁'
          required: true
          type: boolean
          default: 'false'
@@ -922,10 +922,13 @@ jobs:
           - 网络功能增强：${{ github.event.inputs.better_net }}
           - BBR/Brutal 等拥塞控制算法支持：${{ github.event.inputs.bbr_enable }}
           - Droidspaces 容器支持：${{ github.event.inputs.droidspaces_enable }}
+          - Droidspaces 容器支持(方案2)：${{ github.event.inputs.lxc_gunyah_ntsync }}
           - 三星SSG IO调度器支持：${{ github.event.inputs.ssg_enable }}
           - Re-Kernel支持：${{ github.event.inputs.rekernel_enable }}
           - 内核级基带保护支持：${{ github.event.inputs.baseband_guard }}
-          - 注入DroidSpaces内核配置/修复gunyah/启用NTSync: ${{ github.event.inputs.lxc_gunyah_ntsync }}
+          - 零宽字符修复补丁：${{ github.event.inputs.storage_vulnerability_fix }}
+          - selinux检测漏洞修复：${{ github.event.inputs.selinux_fix }}
+          - (危险)kexec实验性支持：${{ github.event.inputs.kexec_support }}
           - ReSukiSU管理器下载：[ReSukiSU_CI](https://github.com/cctv18/ReSukiSU_CI/releases)
           - SukiSU Ultra管理器下载：[SukiSU-Ultra](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases)
           - KernelSU Next管理器下载：[KernelSU-Next](https://github.com/KernelSU-Next/KernelSU-Next/releases)
