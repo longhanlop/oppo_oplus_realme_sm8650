@@ -658,6 +658,8 @@ jobs:
              echo "CONFIG_CGROUP_DEVICE=y" >> ./common/arch/arm64/configs/gki_defconfig
              echo "CONFIG_CGROUP_PIDS=y" >> ./common/arch/arm64/configs/gki_defconfig
              echo "CONFIG_MEMCG=y" >> ./common/arch/arm64/configs/gki_defconfig      
+             # 测试启用udmabuf
+             echo "CONFIG_UDMABUF=y" >> ./common/arch/arm64/configs/gki_defconfig
             fi
            elif [[ "${{ github.event.inputs.lxc_gunyah_ntsync }}" != "false" ]]; then
                 echo "检测到重复配置，跳过此步骤!"
